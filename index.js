@@ -1,29 +1,72 @@
-let balance = 500.00;
+class Account {
+  constructor(username) {
+    this.username = username;
+    this.transactions = [];
+  }
+  get balance() {
+    let total = 0;
+    for (let transaction of this.transactions) {
+      total += transaction.value;
+    }
+    return total;
+  }
 
-class Withdrawal {
+  addTransaction(transaction) {
+    this.transactions.push(transaction);
+  }
+}
 
-  constructor(amount) {
+class Transaction {
+  constructor(amount, account) {
     this.amount = amount;
+    this.account = account;
   }
 
   commit() {
-    balance -= this.amount;
+    if (!this.isAllowed()) return false;
+    this.time = new Date();
+    this.account.addTransaction(this);
+    return true;
   }
-
 }
 
+class Withdrawal extends Transaction {
+  get value() {
+    return this.amount - 2 * this.amount;
+  }
+  isAllowed() {
+    return this.account.balance - this.amount >= 0;
+  }
+}
 
+class Deposit extends Transaction {
+  get value() {
+    return this.amount;
+  }
+  isAllowed() {
+    return true;
+  }
+}
 
+// DRIVER CODE (yes, keep everything in one file for now... b/c cog load)
+const myAccount = new Account("Duru");
 
-// DRIVER CODE BELOW
-// We use the code below to "drive" the application logic above and make sure it's working as expected
+const t1 = new Withdrawal(50.25, myAccount);
+console.log("Transaction successful:", t1.commit());
+console.log(
+  `${myAccount.username} has an account balance of: ${myAccount.balance}`
+);
+console.log("-------");
 
-t1 = new Withdrawal(50.25);
-t1.commit();
-console.log('Transaction 1:', t1);
+const t2 = new Deposit(120, myAccount);
+console.log("Transaction successful:", t2.commit());
+console.log(
+  `${myAccount.username} has an account balance of: ${myAccount.balance}`
+);
+console.log("-------");
 
-t2 = new Withdrawal(9.99);
-t2.commit();
-console.log('Transaction 2:', t2);
-
-console.log('Balance:', balance);
+const t3 = new Withdrawal(9.99, myAccount);
+console.log("Transaction successful:", t3.commit());
+console.log(
+  `${myAccount.username} has an account balance of: ${myAccount.balance}`
+);
